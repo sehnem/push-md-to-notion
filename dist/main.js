@@ -42398,8 +42398,8 @@ var NotionApi = class {
       page_id: pageId,
       properties: {
         [propertyName]: {
-          type: "select",
-          select: {
+          type: "status",
+          status: {
             name: status
           }
         }

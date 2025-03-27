@@ -42374,7 +42374,7 @@ var NotionApi = class {
       auth: token
     });
   }
-  async updatePageTitle(pageId, title) {
+  async updatePageTitle(pageId, title, link) {
     await this.client.pages.update({
       page_id: pageId,
       properties: {
@@ -42383,9 +42383,25 @@ var NotionApi = class {
           title: [
             {
               type: "text",
-              text: { content: title }
+              text: {
+                content: title,
+                link: link ? { url: link } : void 0
+              }
             }
           ]
+        }
+      }
+    });
+  }
+  async updatePageStatus(pageId, status, propertyName = "Sync status") {
+    await this.client.pages.update({
+      page_id: pageId,
+      properties: {
+        [propertyName]: {
+          type: "select",
+          select: {
+            name: status
+          }
         }
       }
     });
@@ -42524,16 +42540,24 @@ async function pushMarkdownFile(mdFilePath) {
   if (!pageId) {
     throw new Error("Could not get page ID from frontmatter");
   }
-  if (pageData.title) {
-    console.log(`Updating title: ${pageData.title}`);
-    await notion.updatePageTitle(pageId, pageData.title);
+  const githubFileUrl = `${github.context.payload.repository?.html_url}/blob/${github.context.sha}/${mdFilePath}`;
+  try {
+    await notion.updatePageStatus(pageId, "Syncing...");
+    if (pageData.title) {
+      console.log(`Updating title: ${pageData.title}`);
+      await notion.updatePageTitle(pageId, pageData.title, githubFileUrl);
+    }
+    console.log("Clearing page content");
+    await notion.clearBlockChildren(pageId);
+    console.log("Adding markdown content");
+    await notion.appendMarkdown(pageId, fileMatter.content, [
+      createWarningBlock(mdFilePath)
+    ]);
+    await notion.updatePageStatus(pageId, "Synced");
+  } catch (error) {
+    await notion.updatePageStatus(pageId, "Error");
+    throw error;
   }
-  console.log("Clearing page content");
-  await notion.clearBlockChildren(pageId);
-  console.log("Adding markdown content");
-  await notion.appendMarkdown(pageId, fileMatter.content, [
-    createWarningBlock(mdFilePath)
-  ]);
 }
 function createWarningBlock(fileName) {
   return {

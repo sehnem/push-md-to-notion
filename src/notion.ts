@@ -33,11 +33,11 @@ export class NotionApi {
     });
   }
 
-  public async updatePageStatus(pageId: string, status: string) {
+  public async updatePageStatus(pageId: string, status: string, propertyName = 'Sync status') {
     await this.client.pages.update({
       page_id: pageId,
       properties: {
-        Status: {
+        [propertyName]: {
           type: 'select',
           select: {
             name: status

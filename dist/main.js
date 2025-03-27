@@ -42403,10 +42403,15 @@ var NotionApi = class {
    * @param md Markdown as string.
    */
   async appendMarkdown(blockId, md, preamble = []) {
-    await this.client.blocks.children.append({
-      block_id: blockId,
-      children: [...preamble, ...(0, import_martian.markdownToBlocks)(md)]
-    });
+    const allBlocks = [...preamble, ...(0, import_martian.markdownToBlocks)(md)];
+    const chunkSize = 100;
+    for (let i = 0; i < allBlocks.length; i += chunkSize) {
+      const chunk = allBlocks.slice(i, i + chunkSize);
+      await this.client.blocks.children.append({
+        block_id: blockId,
+        children: chunk
+      });
+    }
   }
   /**
    * Iterate over all of the childeren of a given block. This manages the underlying paginated API.

@@ -48,10 +48,17 @@ export class NotionApi {
     md: string,
     preamble: BlockObjectRequest[] = []
   ) {
-    await this.client.blocks.children.append({
-      block_id: blockId,
-      children: [...preamble, ...markdownToBlocks(md)],
-    });
+    const allBlocks = [...preamble, ...markdownToBlocks(md)] as BlockObjectRequest[];
+    // Notion API has a limit of 100 children per request, so we need to chunk them
+    const chunkSize = 100;
+
+    for (let i = 0; i < allBlocks.length; i += chunkSize) {
+      const chunk = allBlocks.slice(i, i + chunkSize);
+      await this.client.blocks.children.append({
+        block_id: blockId,
+        children: chunk,
+      });
+    }
   }
 
   /**

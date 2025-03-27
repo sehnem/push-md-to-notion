@@ -42422,8 +42422,8 @@ var NotionApi = class {
       page_id: pageId,
       properties: {
         [propertyName]: {
-          type: "select",
-          select: {
+          type: "status",
+          status: {
             name: status
           }
         }
@@ -42616,7 +42616,7 @@ function createWarningBlock(fileName, githubUrl) {
         `\u{1F512} This document is synced from GitHub. Direct edits in Notion will be lost. Please make changes in the [source file on GitHub](${githubUrl}). You can still add comments to discuss this document.`
       ),
       icon: {
-        emoji: "\u26A0"
+        emoji: "\u26A0\uFE0F"
       },
       color: "yellow_background"
     }

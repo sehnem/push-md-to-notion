@@ -84,7 +84,7 @@ export async function pushMarkdownFile(mdFilePath: string) {
 
     console.log('Adding markdown content');
     await notion.appendMarkdown(pageId, fileMatter.content, [
-      createWarningBlock(mdFilePath, githubFileUrl),
+      createWarningBlock(githubFileUrl),
     ]);
 
     await notion.updatePageStatus(pageId, 'Synced');
@@ -94,15 +94,15 @@ export async function pushMarkdownFile(mdFilePath: string) {
   }
 }
 
-function createWarningBlock(fileName: string, githubUrl: string): BlockObjectRequest {
+function createWarningBlock(githubUrl: string): BlockObjectRequest {
   return {
     type: 'callout',
     callout: {
       rich_text: markdownToRichText(
-        `🔒 This document is synced from GitHub. Direct edits in Notion will be lost. Please make changes in the [source file on GitHub](${githubUrl}). You can still add comments to discuss this document.`
+        `This document is locked and synced from GitHub. Direct edits in Notion will be lost. Please make changes in the [source file on GitHub](${githubUrl}). You can still add comments to discuss this document.`
       ),
       icon: {
-        emoji: '⚠️',
+        emoji: '🔒',
       },
       color: 'yellow_background',
     },

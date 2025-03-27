@@ -149,7 +149,7 @@ export interface NotionFrontmatter {
   status?: string;
   version?: string | number;
   description?: string;
-  authors?: string;
+  authors?: string | string[];
   [key: string]: unknown;
 }
 

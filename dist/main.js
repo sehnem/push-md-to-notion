@@ -42600,7 +42600,7 @@ async function pushMarkdownFile(mdFilePath) {
     await notion.clearBlockChildren(pageId);
     console.log("Adding markdown content");
     await notion.appendMarkdown(pageId, fileMatter.content, [
-      createWarningBlock(mdFilePath, githubFileUrl)
+      createWarningBlock(githubFileUrl)
     ]);
     await notion.updatePageStatus(pageId, "Synced");
   } catch (error) {
@@ -42608,15 +42608,15 @@ async function pushMarkdownFile(mdFilePath) {
     throw error;
   }
 }
-function createWarningBlock(fileName, githubUrl) {
+function createWarningBlock(githubUrl) {
   return {
     type: "callout",
     callout: {
       rich_text: (0, import_martian2.markdownToRichText)(
-        `\u{1F512} This document is synced from GitHub. Direct edits in Notion will be lost. Please make changes in the [source file on GitHub](${githubUrl}). You can still add comments to discuss this document.`
+        `This document is locked and synced from GitHub. Direct edits in Notion will be lost. Please make changes in the [source file on GitHub](${githubUrl}). You can still add comments to discuss this document.`
       ),
       icon: {
-        emoji: "\u26A0\uFE0F"
+        emoji: "\u{1F512}"
       },
       color: "yellow_background"
     }

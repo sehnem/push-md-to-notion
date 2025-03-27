@@ -67,12 +67,24 @@ export async function pushMarkdownFile(mdFilePath: string) {
       await notion.updatePageTitle(pageId, pageData.title, githubFileUrl);
     }
 
+    // Update status property if available in frontmatter
+    if (pageData.status) {
+      console.log(`Updating document status: ${pageData.status}`);
+      await notion.updateDocumentStatus(pageId, pageData.status);
+    }
+
+    // Update version property if available in frontmatter
+    if (pageData.version) {
+      console.log(`Updating version: ${pageData.version}`);
+      await notion.updateVersion(pageId, String(pageData.version));
+    }
+
     console.log('Clearing page content');
     await notion.clearBlockChildren(pageId);
 
     console.log('Adding markdown content');
     await notion.appendMarkdown(pageId, fileMatter.content, [
-      createWarningBlock(mdFilePath),
+      createWarningBlock(mdFilePath, githubFileUrl),
     ]);
 
     await notion.updatePageStatus(pageId, 'Synced');
@@ -82,12 +94,12 @@ export async function pushMarkdownFile(mdFilePath: string) {
   }
 }
 
-function createWarningBlock(fileName: string): BlockObjectRequest {
+function createWarningBlock(fileName: string, githubUrl: string): BlockObjectRequest {
   return {
     type: 'callout',
     callout: {
       rich_text: markdownToRichText(
-        `This file is linked to Github. Changes must be made in the [markdown file](${github.context.payload.repository?.html_url}/blob/${github.context.sha}/${fileName}) to be permanent.`
+        `🔒 This document is synced from GitHub. Direct edits in Notion will be lost. Please make changes in the [source file on GitHub](${githubUrl}). You can still add comments to discuss this document.`
       ),
       icon: {
         emoji: '⚠',

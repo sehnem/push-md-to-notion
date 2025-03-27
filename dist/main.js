@@ -42417,6 +42417,35 @@ var NotionApi = class {
       }
     });
   }
+  async updateDocumentStatus(pageId, status, propertyName = "Status") {
+    await this.client.pages.update({
+      page_id: pageId,
+      properties: {
+        [propertyName]: {
+          type: "select",
+          select: {
+            name: status
+          }
+        }
+      }
+    });
+  }
+  async updateVersion(pageId, version2, propertyName = "Version") {
+    await this.client.pages.update({
+      page_id: pageId,
+      properties: {
+        [propertyName]: {
+          type: "rich_text",
+          rich_text: [{
+            type: "text",
+            text: {
+              content: version2
+            }
+          }]
+        }
+      }
+    });
+  }
   async clearBlockChildren(blockId) {
     for await (const block of this.listChildBlocks(blockId)) {
       await this.client.blocks.delete({
@@ -42559,11 +42588,19 @@ async function pushMarkdownFile(mdFilePath) {
       console.log(`Updating title: ${pageData.title}`);
       await notion.updatePageTitle(pageId, pageData.title, githubFileUrl);
     }
+    if (pageData.status) {
+      console.log(`Updating document status: ${pageData.status}`);
+      await notion.updateDocumentStatus(pageId, pageData.status);
+    }
+    if (pageData.version) {
+      console.log(`Updating version: ${pageData.version}`);
+      await notion.updateVersion(pageId, String(pageData.version));
+    }
     console.log("Clearing page content");
     await notion.clearBlockChildren(pageId);
     console.log("Adding markdown content");
     await notion.appendMarkdown(pageId, fileMatter.content, [
-      createWarningBlock(mdFilePath)
+      createWarningBlock(mdFilePath, githubFileUrl)
     ]);
     await notion.updatePageStatus(pageId, "Synced");
   } catch (error) {
@@ -42571,12 +42608,12 @@ async function pushMarkdownFile(mdFilePath) {
     throw error;
   }
 }
-function createWarningBlock(fileName) {
+function createWarningBlock(fileName, githubUrl) {
   return {
     type: "callout",
     callout: {
       rich_text: (0, import_martian2.markdownToRichText)(
-        `This file is linked to Github. Changes must be made in the [markdown file](${github.context.payload.repository?.html_url}/blob/${github.context.sha}/${fileName}) to be permanent.`
+        `\u{1F512} This document is synced from GitHub. Direct edits in Notion will be lost. Please make changes in the [source file on GitHub](${githubUrl}). You can still add comments to discuss this document.`
       ),
       icon: {
         emoji: "\u26A0"

@@ -59,6 +59,37 @@ export class NotionApi {
     });
   }
 
+  public async updateDocumentStatus(pageId: string, status: string, propertyName = 'Status') {
+    await this.client.pages.update({
+      page_id: pageId,
+      properties: {
+        [propertyName]: {
+          type: 'select',
+          select: {
+            name: status
+          }
+        }
+      }
+    });
+  }
+
+  public async updateVersion(pageId: string, version: string, propertyName = 'Version') {
+    await this.client.pages.update({
+      page_id: pageId,
+      properties: {
+        [propertyName]: {
+          type: 'rich_text',
+          rich_text: [{
+            type: 'text',
+            text: {
+              content: version
+            }
+          }]
+        }
+      }
+    });
+  }
+
   public async clearBlockChildren(blockId: string) {
     for await (const block of this.listChildBlocks(blockId)) {
       await this.client.blocks.delete({
@@ -115,6 +146,10 @@ export class NotionApi {
 export interface NotionFrontmatter {
   notion_page: string;
   title?: string;
+  status?: string;
+  version?: string | number;
+  description?: string;
+  authors?: string;
   [key: string]: unknown;
 }
 

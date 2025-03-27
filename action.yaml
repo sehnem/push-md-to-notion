@@ -1,7 +1,8 @@
 # yaml-language-server: $schema=https://json.schemastore.org/github-action.json
 name: Push Markdown to Notion
-description: Push markdown changes to Notion
-author: Josh Stern <josh.stern95@gmail.com>
+description: Push markdown files to Notion pages
+# Forked from Josh Stern's original work: https://github.com/JoshStern/push-md-to-notion
+author: Ricky Marcon
 branding:
   color: blue
   icon: book-open

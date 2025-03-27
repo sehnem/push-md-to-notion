@@ -1,33 +1,45 @@
----
-notion_page: https://joshstern.notion.site/Github-Markdown-files-in-Notion-e2c1415d3253487baeb54fbe5d7383d0
-title: Github Markdown files in Notion
----
+# Push Markdown to Notion
 
-# Managing markdown documentation
+Sync your Markdown documentation between GitHub and Notion automatically. This GitHub Action monitors commits for Markdown changes and syncs them to your Notion workspace, keeping both places in sync.
 
-As projects scale it's important to keep documentation accessible and up-to-date. README's and other markdown files that live alongside source can be extremely useful for building context as you work throughout a repository.
+## Why Use This?
 
-For many organizations Notion is the central store for documentation. This project lets engineers continue to author documentation alongside their work and also make sure it stays up to date with the broader organization documentation.
+- **Keep Documentation in Sync**: Write in Markdown alongside your code, while ensuring your Notion workspace stays current
+- **Developer-Friendly**: Engineers can work in their preferred environment (GitHub) while colleagues can access the same content in Notion
+- **Clear Ownership**: Files are clearly marked as synced from GitHub with a link back to the source
 
-# Usage
+## Features
 
-This Github action automatically scans commits for markdown changes and uses some frontmatter fields to push the changes to Notion.
+- 🔄 GitHub to Notion syncing
+- 🏷️ Supports rich frontmatter for metadata (syncs title, status, version)
+- 📊 Properly formats tables and other Markdown elements
+- 🔒 Locks documents in Notion with clear indication of source
+- ⚡ Handles large documents with API-compliant chunking
+- 📈 Tracks sync status (Syncing, Synced, Error)
 
-It's intentionally set up to be used with an internal integration so document data stays within your organization.
+## Setup
 
-## 1. Get an integration key
+### 1. Create a Notion Integration
 
-Head to the [Notion dashboard](https://www.notion.so/my-integrations) and create a new internal integration. It will need read, update, and insert capabilities.
+1. Go to [Notion Integrations](https://www.notion.so/my-integrations)
+2. Create a new internal integration
+3. Grant it `read`, `update`, and `insert` capabilities
+4. Copy the token for the next step
 
-## 2. Configure a Github workflow
+### 2. Configure GitHub Workflow
 
-This workflow will run for every push to `main`. It is dependent on having access to `git` and the repo being checked. It will check the latest commit on whichever branch is checked out for markdown changes. Make sure to add `fetch-depth: 2` for the diff check to work correctly.
+Create a file at `.github/workflows/sync-notion.yml` with the following content:
 
 ```yaml
+name: Sync Markdown to Notion
+
 on:
   push:
     branches:
       - main
+    paths:
+      - '**.md'
+
 jobs:
   push_markdown_job:
     runs-on: ubuntu-latest
@@ -38,45 +50,66 @@ jobs:
         with:
           fetch-depth: 2
       - name: Push Markdown to Notion
-        uses: JoshStern/push-md-to-notion@v0.3.0
-        id: push_markdown
+        uses: rickymarcon/push-md-to-notion@main
         with:
           notion-token: ${{ secrets.NOTION_TOKEN }}
 ```
 
-## 3. Create a Notion page and add the integration
+### 3. Create Notion Pages
 
-A Notion page needs to be created before markdown content will be synced to it. You can add your integration to a root page or to each synced page.
+For each Markdown file you want to sync:
+1. Create a Notion page
+2. Share it with your integration
+3. Copy the page link
 
-## 4. Add the page link
+### 4. Add Frontmatter to Your Markdown
 
-You're now ready to start pushing changes to Notion! You can add the following frontmatter fields to an existing markdown file or to a new one.
+Add the following frontmatter to any Markdown file you want to sync:
 
-```
+```md
 ---
-notion_page: https://www.notion.so/<your_path>
-title: <Your Title>
+title: Your Document Title
+description: A brief description of the document
+status: Draft
+authors: Author Name (email@domain.com)
+version: 0.1
+notion_page: https://www.notion.so/your-page-id
 ---
 
-# My README
+# Your Content
 
-This content will by synced to Notion!
+Regular Markdown content goes here.
 ```
 
-Repeat steps 3 and 4 for new markdown files.
+Only the `notion_page` field is required, but the `title`, `status`, and `version` fields will update corresponding properties in Notion. The `description` and `authors` fields are included in the frontmatter but not currently synced with Notion properties.
 
-# Limitations
+## Properties Supported
 
-## Notion API
+| Frontmatter Property | Notion Property Type | Description | Synced |
+|----------------------|--------------------|--------------| ------ |
+| `title` | Title | Document title (linked to GitHub source) | ✅ |
+| `status` | Status | Document status (Draft, Review, etc.) | ✅ |
+| `version` | Rich Text | Version number or string | ✅ |
+| `description` | N/A | Brief description | ❌ |
+| `authors` | N/A | Author names/emails (string or array) | ❌ |
+| `notion_page` | N/A | The Notion page URL to sync with (required) | N/A |
 
-This tool has all of the standard [Notion API limits](https://developers.notion.com/reference/request-limits).
+## How It Works
 
-## Slow syncs
+1. When you push changes to Markdown files with the proper frontmatter
+2. The GitHub action automatically detects the changes
+3. It updates the corresponding Notion page, including:
+   - Setting the document status to "Syncing..."
+   - Updating metadata properties
+   - Clearing existing content
+   - Adding a warning banner that the content is synced from GitHub
+   - Adding all Markdown content, properly formatted
+   - Setting the status to "Synced" when complete
 
-Notion does not have a bulk delete blocks API. When trying to speed things up by batching delete requests the sync job began erroring because of state conflicts in Notion. We're left with deleting blocks one-by-one, which for large pages can take some time. The update API also has very limited options so it can't be used to replace existing elements.
+## Acknowledgements
 
-Some optimizations could be made to also parallelize by documents but the current implementation fits my needs. Contributions welcome!
-
-# Thanks
-
-This project is mostly a wire-up of the [Notion client](https://www.npmjs.com/package/@notionhq/client) and [`@tryfabric/martian`](https://www.npmjs.com/package/@tryfabric/martian). Many thanks to the maintainers of those projects!
+This project is forked from [JoshStern/push-md-to-notion](https://github.com/JoshStern/push-md-to-notion) with additional improvements:
+- Support for chunking large Markdown documents
+- Better status tracking and error handling
+- Support for additional frontmatter fields
+- Improved GitHub integration

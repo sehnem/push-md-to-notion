@@ -13,7 +13,7 @@ export class NotionApi {
     });
   }
 
-  public async updatePageTitle(pageId: string, title: string) {
+  public async updatePageTitle(pageId: string, title: string, link?: string) {
     await this.client.pages.update({
       page_id: pageId,
       properties: {
@@ -22,11 +22,28 @@ export class NotionApi {
           title: [
             {
               type: 'text',
-              text: { content: title },
+              text: {
+                content: title,
+                link: link ? { url: link } : undefined
+              },
             },
           ],
         },
       },
+    });
+  }
+
+  public async updatePageStatus(pageId: string, status: string) {
+    await this.client.pages.update({
+      page_id: pageId,
+      properties: {
+        Status: {
+          type: 'select',
+          select: {
+            name: status
+          }
+        }
+      }
     });
   }
 

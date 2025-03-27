@@ -53,18 +53,30 @@ export async function pushMarkdownFile(mdFilePath: string) {
     throw new Error('Could not get page ID from frontmatter');
   }
 
-  if (pageData.title) {
-    console.log(`Updating title: ${pageData.title}`);
-    await notion.updatePageTitle(pageId, pageData.title);
+  // Create the GitHub URL for the markdown file
+  const githubFileUrl = `${github.context.payload.repository?.html_url}/blob/${github.context.sha}/${mdFilePath}`;
+
+  try {
+    await notion.updatePageStatus(pageId, 'Syncing...');
+
+    if (pageData.title) {
+      console.log(`Updating title: ${pageData.title}`);
+      await notion.updatePageTitle(pageId, pageData.title, githubFileUrl);
+    }
+
+    console.log('Clearing page content');
+    await notion.clearBlockChildren(pageId);
+
+    console.log('Adding markdown content');
+    await notion.appendMarkdown(pageId, fileMatter.content, [
+      createWarningBlock(mdFilePath),
+    ]);
+
+    await notion.updatePageStatus(pageId, 'Synced');
+  } catch (error) {
+    await notion.updatePageStatus(pageId, 'Error');
+    throw error;
   }
-
-  console.log('Clearing page content');
-  await notion.clearBlockChildren(pageId);
-
-  console.log('Adding markdown content');
-  await notion.appendMarkdown(pageId, fileMatter.content, [
-    createWarningBlock(mdFilePath),
-  ]);
 }
 
 function createWarningBlock(fileName: string): BlockObjectRequest {

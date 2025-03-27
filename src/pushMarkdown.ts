@@ -102,7 +102,7 @@ function createWarningBlock(fileName: string, githubUrl: string): BlockObjectReq
         `🔒 This document is synced from GitHub. Direct edits in Notion will be lost. Please make changes in the [source file on GitHub](${githubUrl}). You can still add comments to discuss this document.`
       ),
       icon: {
-        emoji: '⚠',
+        emoji: '⚠️',
       },
       color: 'yellow_background',
     },

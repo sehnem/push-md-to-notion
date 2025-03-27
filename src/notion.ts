@@ -47,6 +47,18 @@ export class NotionApi {
     });
   }
 
+  public async updatePageUrl(pageId: string, url: string, propertyName = 'GitHub URL') {
+    await this.client.pages.update({
+      page_id: pageId,
+      properties: {
+        [propertyName]: {
+          type: 'url',
+          url: url
+        }
+      }
+    });
+  }
+
   public async clearBlockChildren(blockId: string) {
     for await (const block of this.listChildBlocks(blockId)) {
       await this.client.blocks.delete({

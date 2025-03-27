@@ -42406,6 +42406,17 @@ var NotionApi = class {
       }
     });
   }
+  async updatePageUrl(pageId, url, propertyName = "GitHub URL") {
+    await this.client.pages.update({
+      page_id: pageId,
+      properties: {
+        [propertyName]: {
+          type: "url",
+          url
+        }
+      }
+    });
+  }
   async clearBlockChildren(blockId) {
     for await (const block of this.listChildBlocks(blockId)) {
       await this.client.blocks.delete({
@@ -42543,6 +42554,7 @@ async function pushMarkdownFile(mdFilePath) {
   const githubFileUrl = `${github.context.payload.repository?.html_url}/blob/${github.context.sha}/${mdFilePath}`;
   try {
     await notion.updatePageStatus(pageId, "Syncing...");
+    await notion.updatePageUrl(pageId, githubFileUrl);
     if (pageData.title) {
       console.log(`Updating title: ${pageData.title}`);
       await notion.updatePageTitle(pageId, pageData.title, githubFileUrl);

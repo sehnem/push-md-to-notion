@@ -59,6 +59,9 @@ export async function pushMarkdownFile(mdFilePath: string) {
   try {
     await notion.updatePageStatus(pageId, 'Syncing...');
 
+    // Update the GitHub URL property
+    await notion.updatePageUrl(pageId, githubFileUrl);
+
     if (pageData.title) {
       console.log(`Updating title: ${pageData.title}`);
       await notion.updatePageTitle(pageId, pageData.title, githubFileUrl);

@@ -14,66 +14,98 @@ export class NotionApi {
   }
 
   public async updatePageTitle(pageId: string, title: string, link?: string) {
-    await this.client.pages.update({
-      page_id: pageId,
-      properties: {
-        title: {
-          type: 'title',
-          title: [
-            {
-              type: 'text',
-              text: {
-                content: title,
-                link: link ? { url: link } : undefined
+    try {
+      await this.client.pages.update({
+        page_id: pageId,
+        properties: {
+          title: {
+            type: 'title',
+            title: [
+              {
+                type: 'text',
+                text: {
+                  content: title,
+                  link: link ? { url: link } : undefined
+                },
               },
-            },
-          ],
+            ],
+          },
         },
-      },
-    });
+      });
+    } catch (error: any) {
+      if (error?.code === 'validation_error' && error?.message?.includes('Invalid property identifier')) {
+        console.warn(`Title property issue in Notion page, skipping title update`);
+      } else {
+        throw error;
+      }
+    }
   }
 
   public async updatePageUrl(pageId: string, url: string, propertyName = 'GitHub URL') {
-    await this.client.pages.update({
-      page_id: pageId,
-      properties: {
-        [propertyName]: {
-          type: 'url',
-          url: url
+    try {
+      await this.client.pages.update({
+        page_id: pageId,
+        properties: {
+          [propertyName]: {
+            type: 'url',
+            url: url
+          }
         }
+      });
+    } catch (error: any) {
+      if (error?.code === 'validation_error' && error?.message?.includes('Invalid property identifier')) {
+        console.warn(`Property "${propertyName}" does not exist in Notion page, skipping URL update`);
+      } else {
+        throw error;
       }
-    });
+    }
   }
 
   public async updateDocumentStatus(pageId: string, status: string, propertyName = 'Status') {
-    await this.client.pages.update({
-      page_id: pageId,
-      properties: {
-        [propertyName]: {
-          type: 'status',
-          status: {
-            name: status
+    try {
+      await this.client.pages.update({
+        page_id: pageId,
+        properties: {
+          [propertyName]: {
+            type: 'status',
+            status: {
+              name: status
+            }
           }
         }
+      });
+    } catch (error: any) {
+      if (error?.code === 'validation_error' && error?.message?.includes('Invalid property identifier')) {
+        console.warn(`Property "${propertyName}" does not exist in Notion page, skipping status update`);
+      } else {
+        throw error;
       }
-    });
+    }
   }
 
   public async updateVersion(pageId: string, version: string, propertyName = 'Version') {
-    await this.client.pages.update({
-      page_id: pageId,
-      properties: {
-        [propertyName]: {
-          type: 'rich_text',
-          rich_text: [{
-            type: 'text',
-            text: {
-              content: version
-            }
-          }]
+    try {
+      await this.client.pages.update({
+        page_id: pageId,
+        properties: {
+          [propertyName]: {
+            type: 'rich_text',
+            rich_text: [{
+              type: 'text',
+              text: {
+                content: version
+              }
+            }]
+          }
         }
+      });
+    } catch (error: any) {
+      if (error?.code === 'validation_error' && error?.message?.includes('Invalid property identifier')) {
+        console.warn(`Property "${propertyName}" does not exist in Notion page, skipping version update`);
+      } else {
+        throw error;
       }
-    });
+    }
   }
 
   public async clearBlockChildren(blockId: string) {

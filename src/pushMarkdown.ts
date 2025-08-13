@@ -57,8 +57,6 @@ export async function pushMarkdownFile(mdFilePath: string) {
   const githubFileUrl = `${github.context.payload.repository?.html_url}/blob/${github.context.sha}/${mdFilePath}`;
 
   try {
-    await notion.updatePageStatus(pageId, 'Syncing...');
-
     // Update the GitHub URL property
     await notion.updatePageUrl(pageId, githubFileUrl);
 
@@ -87,9 +85,9 @@ export async function pushMarkdownFile(mdFilePath: string) {
       createWarningBlock(githubFileUrl),
     ]);
 
-    await notion.updatePageStatus(pageId, 'Synced');
+    console.log('Successfully synced markdown to Notion');
   } catch (error) {
-    await notion.updatePageStatus(pageId, 'Error');
+    console.error('Failed to sync markdown to Notion:', error);
     throw error;
   }
 }
